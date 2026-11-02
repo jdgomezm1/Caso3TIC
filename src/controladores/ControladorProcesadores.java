@@ -1,5 +1,5 @@
 package controladores;
 
-public class ControladorProcesadores {
+public class ControladorProcesadores extends ControladorRecurso {
     
 }
