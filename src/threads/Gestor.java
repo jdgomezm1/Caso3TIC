@@ -1,14 +1,17 @@
 package threads;
 
-import java.util.List;
-
 import controladores.ControladorAlmacenamiento;
 import controladores.ControladorMemoria;
 import controladores.ControladorProcesadores;
+import java.util.List;
 import modelo.Solicitud;
 import monitores.BuzonEntrada;
 import monitores.ZonaEspera;
 
+// saca solicitudes del buzon y por cada una crea e inicia una mv
+// antes de sacar una revisa el umbral de la zona de espera
+// si el buzon esta vacio hace espera semiactiva (yield)
+// termina cuando no hay usuarios activos y el buzon esta vacio
 public class Gestor extends Thread {
 
     int idGestor;
@@ -17,6 +20,7 @@ public class Gestor extends Thread {
     ControladorProcesadores controladorProcesadores;
     ControladorAlmacenamiento controladorAlmacenamiento;
     ControladorMemoria controladorMemoria;
+    // lista compartida entre todos los gestores, se protege con synchronized al agregar
     List<MaquinaVirtual> maquinasVirtuales;
 
 
@@ -31,21 +35,32 @@ public class Gestor extends Thread {
     }
 
     public void run() {
-            while(true) {
-            Solicitud solicitud = buzonEntrada.retirarSolicitud();
-            if (solicitud == null) {
-                try{
-                    wait();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+        // sigue mientras haya usuarios activos o solicitudes en el buzon
+        while (!buzonEntrada.terminado()) {
+
+            // prioridad a las pendientes: si se alcanzo el umbral, espera total
+            // mientras espera no saca nada del buzon
+            if (zona.alcanzaUmbral()) {
+                System.out.println("Gestor " + idGestor + " umbral alcanzado, espera a que se vacie la zona");
+                zona.esperarVaciado();
+                System.out.println("Gestor " + idGestor + " zona vacia, sigue");
             }
 
-            
-
-            System.out.println("Gestor " + idGestor + " procesando solicitud: " + solicitud + " del usuario " + solicitud.getIdUsuario());
-            // Aquí puedes agregar la lógica para procesar la solicitud utilizando los controladores y la zona de espera
+            Solicitud solicitud = buzonEntrada.retirarSolicitud();
+            if (solicitud == null) {
+                // buzon vacio: espera semiactiva y vuelve a revisar
+                Thread.yield();
+            } else {
+                System.out.println("Gestor " + idGestor + " procesando solicitud: " + solicitud + " del usuario " + solicitud.getIdUsuario());
+                // orden del constructor: procesadores, memoria, almacenamiento
+                MaquinaVirtual mv = new MaquinaVirtual(solicitud.getId(), solicitud, zona, controladorProcesadores, controladorMemoria, controladorAlmacenamiento);
+                synchronized (maquinasVirtuales) {
+                    maquinasVirtuales.add(mv);
+                }
+                mv.start();
+            }
         }
+        System.out.println("Gestor " + idGestor + " termino");
     }
 
     public List<MaquinaVirtual> getMaquinasVirtuales() {
@@ -53,5 +68,5 @@ public class Gestor extends Thread {
     }
 
 
-    
+
 }
