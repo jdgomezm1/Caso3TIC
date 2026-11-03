@@ -26,17 +26,15 @@ public class MaquinaVirtual extends Thread {
     @Override
     public void run() {
         boolean enZona = false;
-
-        while (true) {
-            long gen = zona.getGeneracion(); // leer antes de intentar reservar para evitar ignorar una liberación de recursos que se da antes de que se duerma la MV
-            if (reservarRecursos()) {
-                break;
-            }
+        long gen = zona.getGeneracion(); // leer antes de intentar reservar para evitar ignorar una liberación de recursos que se da antes de que se duerma la MV
+        // se lee antes de entrar al ciclo porque la idea es comparar el valor de gen inicial para saber si han habido liberaciones en lo que se llega a la ejecución de dormir, por lo que esta lecutra es para el 1er intento
+        while (!reservarRecursos()) {
             if (!enZona) {
                 zona.entrar();
                 enZona = true;
             }
             zona.dormir(gen);
+            gen = zona.getGeneracion(); // actualizar gen para la siguiente iteración, si es que no se logra reservar
         }
 
         if (enZona) {
@@ -64,7 +62,6 @@ public class MaquinaVirtual extends Thread {
         }
         return true;
     }
-
     
 
     private void ejecutar() {
