@@ -23,10 +23,9 @@ public class PruebaControladores {
         System.out.println(fallos == 0 ? "TODAS LAS PRUEBAS PASARON" : "FALLARON " + fallos + " PRUEBAS");
     }
 
-    // ojo: cuando maquinavirtual tenga constructor con parametros, cambiar esta linea
-    // por ejemplo: new MaquinaVirtual(id, null, null, null, null, null)
+    // la mv no se inicia, por eso la zona y los controladores arrancan en null
     private static MaquinaVirtual nuevaMV(int id) {
-        return new MaquinaVirtual();
+        return new MaquinaVirtual("mv" + id, null, null, null, null, null);
     }
 
     // 1. gib a paginas o bloques, redondeando hacia arriba
