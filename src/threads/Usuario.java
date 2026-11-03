@@ -21,10 +21,7 @@ public class Usuario extends Thread {
         this.maxAlmacenamiento = maxAlmacenamiento;
     }
 
-    // CORRECCIÓN: número aleatorio entre 1 y el entero más cercano a 3/4 de la capacidad.
-    // Antes: (int)(Math.random()*(0.75*max)+1). Cuando 0.75*max termina en .25
-    // (max = 3, 7, 11, ...) podía salir un valor por encima del tope.
-    // Ejemplo: max = 7 -> 0.75*7 = 5.25 -> el entero más cercano es 5, pero salía hasta 6.
+    // numero aleatorio entre 1 y el entero mas cercano a 3/4 de la capacidad
     private static int aleatorioHastaTresCuartos(int max) {
         int tope = (int) Math.max(1, Math.round(0.75 * max)); // nunca menor que 1
         return 1 + (int) (Math.random() * tope);              // 1..tope
@@ -35,13 +32,11 @@ public class Usuario extends Thread {
         int procesadores = aleatorioHastaTresCuartos(maxProcesadores);
 
         int memoria = aleatorioHastaTresCuartos(maxMemoria);
-        memoria = Integer.highestOneBit(memoria); // potencia de 2 más alta <= valor generado
+        memoria = Integer.highestOneBit(memoria); // potencia de 2 mas alta <= valor
 
         int almacenamiento = aleatorioHastaTresCuartos(maxAlmacenamiento);
-        almacenamiento = (almacenamiento / 2) * 2; // múltiplo de 2 más alto <= valor generado
-        // CORRECCIÓN: si el valor generado era 1, el múltiplo de 2 quedaba en 0 GiB
-        // (una MV sin disco). Decisión: en ese caso se pide 2 GiB, o 1 si la capacidad
-        // total de almacenamiento no alcanza para 2. Hay que mencionarlo en el informe.
+        almacenamiento = (almacenamiento / 2) * 2; // multiplo de 2 mas alto <= valor
+        // si salio 1, el multiplo de 2 seria 0: se pide 2 (o 1 si la capacidad no alcanza)
         if (almacenamiento == 0) {
             almacenamiento = Math.min(2, maxAlmacenamiento);
         }
@@ -54,9 +49,7 @@ public class Usuario extends Thread {
     }
 
     public void run() {
-        // CORRECCIÓN: try/finally. ingresarSolicitud ahora puede lanzar InterruptedException;
-        // pase lo que pase, el usuario reporta su terminación en el buzón. Si no lo hiciera,
-        // usuariosActivos nunca llegaría a 0 y los gestores no terminarían.
+        // finally: el usuario siempre reporta que termino, si no los gestores no terminan
         try {
             for (int i = 0; i < numSolicitudes; i++) {
                 generarSolicitud(i + "-" + id);

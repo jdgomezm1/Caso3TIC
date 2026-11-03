@@ -2,8 +2,8 @@ package modelo;
 
 public class Solicitud {
 
-    // CORRECCIÓN: atributos final. La solicitud no cambia después de creada,
-    // así que es inmutable y se puede compartir entre threads sin sincronizar.
+    // atributos final: la solicitud no cambia despues de creada
+    // por eso se puede compartir entre threads sin sincronizar
     private final String id;
     private final int idUsuario;
     private final int numProcesadores;
@@ -26,8 +26,7 @@ public class Solicitud {
         return idUsuario;
     }
 
-    // CORRECCIÓN: faltaban los  getters. La mv los necesita
-    // para pedir los recursos a cada controlador.
+    // la mv usa estos getters para pedir los recursos
     public int getNumProcesadores() {
         return numProcesadores;
     }
@@ -40,7 +39,7 @@ public class Solicitud {
         return almacenamiento;
     }
 
-    // CORRECCIÓN: sin toString() los println mostraban "modelo.Solicitud@1b6d3586".
+    // para que los println muestren la solicitud legible
     @Override
     public String toString() {
         return id + " [cpu=" + numProcesadores + ", mem=" + memoria + " GiB, disco=" + almacenamiento + " GiB]";
