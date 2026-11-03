@@ -1,20 +1,5 @@
 package controladores;
 
-<<<<<<< HEAD
-
-
-public class ControladorMemoria extends ControladorRecurso {
-    private final int tamPaginaKiB;
-
-    public ControladorMemoria(int memoriaGiB, int tamPaginaKiB) {
-        super((int) (memoriaGiB * 1024L * 1024L / tamPaginaKiB)); // total paginas
-        this.tamPaginaKiB = tamPaginaKiB;
-    }
-    @Override
-    protected int traducir(long gib) {
-        long kib = gib * 1024L * 1024L; // pasar de gib a kib para coherencia de unidades en calculo
-        return (int) ((kib + tamPaginaKiB - 1) / tamPaginaKiB); // techo
-=======
 // controla la memoria
 // cada unidad es una pagina de tamPaginaKiB
 public class ControladorMemoria extends ControladorRecurso {
@@ -34,7 +19,6 @@ public class ControladorMemoria extends ControladorRecurso {
 
     public int getTamPaginaKiB() {
         return tamPaginaKiB;
->>>>>>> 8c6455c487993a3363330454fb445de8c8a765e4
     }
 }
 
