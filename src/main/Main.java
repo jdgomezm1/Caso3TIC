@@ -3,7 +3,6 @@ package main;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-
 import monitores.BuzonEntrada;
 import threads.Usuario;
 
@@ -26,52 +25,81 @@ public class Main {
         Main main = new Main();
         if (args.length > 0) {
             main.nombreArchivo = args[0];
-            main.leerArchivo(main.nombreArchivo);
+            // si el archivo no se pudo leer, se termina
+            if (!main.leerArchivo(main.nombreArchivo)) {
+                return;
+            }
         } else {
             System.out.println("ingresa la ruta del archivo de configuración.");
+            // sin archivo no hay parametros, se termina
+            return;
         }
 
-        BuzonEntrada buzonEntrada = new BuzonEntrada(10,main.nu);
+        // capacidad del buzon = tam1
+        BuzonEntrada buzonEntrada = new BuzonEntrada(main.tam1, main.nu);
 
-        for(int i =0; i < main.nu; i++) {
-            Usuario usuario = new Usuario(i, main.base*i, buzonEntrada, main.procesadores, main.memoria, main.almacenamiento);
-            usuario.start();
+        // pendiente: crear la zona de espera (umbral = tam2)
+        // pendiente: crear los tres controladores
 
+        // se guardan los usuarios para hacerles join al final
+        Usuario[] usuarios = new Usuario[main.nu];
 
+        for (int i = 0; i < main.nu; i++) {
+            // el usuario i genera base*(i+1) solicitudes
+            // ojo: confirmar con el enunciado como se calcula a partir de base
+            usuarios[i] = new Usuario(i, main.base * (i + 1), buzonEntrada,
+                    main.procesadores, main.memoria, main.almacenamiento);
+            usuarios[i].start();
         }
 
+        // pendiente: crear e iniciar los ng gestores
+
+        // esperar a que terminen los usuarios
+        // ojo: sin gestores, si hay mas de tam1 solicitudes el buzon se llena y esto no termina
+        try {
+            for (Usuario u : usuarios) {
+                u.join();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+
+        // pendiente: join a los gestores y luego a todas las mvs
+        // pendiente: verificar que el buzon y la zona queden vacios y los recursos libres
     }
 
 
-    public void leerArchivo(String rutaArchivo) {
+    // devuelve true si el archivo se leyo bien
+    public boolean leerArchivo(String rutaArchivo) {
         try (BufferedReader br = new BufferedReader(new FileReader(rutaArchivo))) {
             String linea;
 
-            // 1. Número de usuarios (nu)
+            // 1. numero de usuarios (nu)
             if ((linea = br.readLine()) != null) {
                 this.nu = Integer.parseInt(linea.trim());
             }
-            // 2. Número base de eventos (base)
+            // 2. numero base de eventos (base)
             if ((linea = br.readLine()) != null) {
                 this.base = Integer.parseInt(linea.trim());
             }
-            // 3. Número de gestores (ng)
+            // 3. numero de gestores (ng)
             if ((linea = br.readLine()) != null) {
                 this.ng = Integer.parseInt(linea.trim());
             }
-            // 4. Capacidad del buzón de entrada (tam1)
+            // 4. capacidad del buzon de entrada (tam1)
             if ((linea = br.readLine()) != null) {
                 this.tam1 = Integer.parseInt(linea.trim());
             }
-            // 5. Capacidad de la zona de espera (tam2)
+            // 5. umbral de la zona de espera (tam2)
             if ((linea = br.readLine()) != null) {
                 this.tam2 = Integer.parseInt(linea.trim());
             }
-            // 6. Número de procesadores en el sistema (procesadores)
+            // 6. numero de procesadores
             if ((linea = br.readLine()) != null) {
                 this.procesadores = Integer.parseInt(linea.trim());
             }
-            // 7. Capacidad en memoria y tamaño de página (memoria, pagina)
+            // 7. memoria en gib y tamaño de pagina en kib
             if ((linea = br.readLine()) != null) {
                 String[] partes = linea.trim().split("\\s+");
                 this.memoria = Integer.parseInt(partes[0]);
@@ -79,7 +107,7 @@ public class Main {
                     this.pagina = Integer.parseInt(partes[1]);
                 }
             }
-            // 8. Capacidad en almacenamiento y tamaño de bloque (almacenamiento, bloque)
+            // 8. almacenamiento en gib y tamaño de bloque en kib
             if ((linea = br.readLine()) != null) {
                 String[] partes = linea.trim().split("\\s+");
                 this.almacenamiento = Integer.parseInt(partes[0]);
@@ -88,15 +116,24 @@ public class Main {
                 }
             }
 
+            // validar que no falte ningun parametro
+            if (nu < 1 || base < 1 || ng < 1 || tam1 < 1 || tam2 < 0 || procesadores < 1
+                    || memoria == null || pagina == null || almacenamiento == null || bloque == null) {
+                System.err.println("Error: faltan parámetros o hay valores fuera de rango en " + rutaArchivo);
+                return false;
+            }
+
             System.out.println("¡Archivo leído y parámetros cargados exitosamente!");
+            return true;
 
         } catch (IOException e) {
             System.err.println("Error al leer el archivo: " + e.getMessage());
         } catch (NumberFormatException e) {
             System.err.println("Error: Formato numérico inválido en el archivo. " + e.getMessage());
         }
+        return false;
     }
 
 
-    
+
 }

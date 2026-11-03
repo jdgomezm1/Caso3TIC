@@ -21,15 +21,25 @@ public class Usuario extends Thread {
         this.maxAlmacenamiento = maxAlmacenamiento;
     }
 
-    private void generarSolicitud(String idSol) {
+    // numero aleatorio entre 1 y el entero mas cercano a 3/4 de la capacidad
+    private static int aleatorioHastaTresCuartos(int max) {
+        int tope = (int) Math.max(1, Math.round(0.75 * max)); // nunca menor que 1
+        return 1 + (int) (Math.random() * tope);              // 1..tope
+    }
 
-        int procesadores= (int) (Math.random()*((3.0/4.0)*maxProcesadores)+1);
-        int memoria = (int) (Math.random()*((3.0/4.0)*maxMemoria)+1);
-        memoria= Integer.highestOneBit(memoria);
+    private void generarSolicitud(String idSol) throws InterruptedException {
 
-        int almacenamiento = (int) (Math.random()*((3.0/4.0)*maxAlmacenamiento)+1);
-        almacenamiento= (int) almacenamiento/2;
-        almacenamiento = 2*almacenamiento;
+        int procesadores = aleatorioHastaTresCuartos(maxProcesadores);
+
+        int memoria = aleatorioHastaTresCuartos(maxMemoria);
+        memoria = Integer.highestOneBit(memoria); // potencia de 2 mas alta <= valor
+
+        int almacenamiento = aleatorioHastaTresCuartos(maxAlmacenamiento);
+        almacenamiento = (almacenamiento / 2) * 2; // multiplo de 2 mas alto <= valor
+        // si salio 1, el multiplo de 2 seria 0: se pide 2 (o 1 si la capacidad no alcanza)
+        if (almacenamiento == 0) {
+            almacenamiento = Math.min(2, maxAlmacenamiento);
+        }
 
         System.out.println("Usuario " + this.id + " generando solicitud.");
 
@@ -39,9 +49,15 @@ public class Usuario extends Thread {
     }
 
     public void run() {
-        for (int i = 0; i < numSolicitudes; i++) {
-            generarSolicitud(i+"-"+id);
+        // finally: el usuario siempre reporta que termino, si no los gestores no terminan
+        try {
+            for (int i = 0; i < numSolicitudes; i++) {
+                generarSolicitud(i + "-" + id);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            buzonEntrada.usuarioTermino();
         }
-        buzonEntrada.usuarioTermino();
     }
 }
