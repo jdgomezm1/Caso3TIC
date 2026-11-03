@@ -34,7 +34,7 @@ public class BuzonEntrada {
     }
     public synchronized Solicitud retirarSolicitud() {
         
-        while (solicitudes.isEmpty()) {
+        while (solicitudes.isEmpty() && usuariosActivos > 0) {
             try {
                 wait(); // Espera si el buzón está vacío
             } catch (InterruptedException e) {
@@ -42,9 +42,13 @@ public class BuzonEntrada {
             }
         }
 
-        Solicitud solicitud = solicitudes.poll();
-        System.out.println("Solicitud retirada: " + solicitud + "del usuario " + solicitud.getIdUsuario());
-        notifyAll(); // Notifica a los usuarios que hay espacio disponible en el buzón
+        Solicitud solicitud = null;
+        if (usuariosActivos>0){
+            solicitud = (Solicitud) solicitudes.poll();
+            System.out.println("Solicitud retirada: " + solicitud + "del usuario " + solicitud.getIdUsuario());
+            notifyAll();
+        }
+         // Notifica a los usuarios que hay espacio disponible en el buzón
         return solicitud;
     }
     public void usuarioTermino(){
