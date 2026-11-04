@@ -29,7 +29,7 @@ public class Main {
     Integer almacenamiento;
     Integer bloque;
 
-    String nombreArchivo = "";
+    String nombreArchivo = "/config.txt";
 
     public static void main(String[] args) {
         Main main = new Main();
@@ -44,6 +44,7 @@ public class Main {
             // sin archivo no hay parametros, se termina
             return;
         }
+
 
         // capacidad del buzon = tam1
         BuzonEntrada buzonEntrada = new BuzonEntrada(main.tam1, main.nu);
@@ -65,8 +66,8 @@ public class Main {
             // el usuario i genera base*(i+1) solicitudes
             // ojo: confirmar con el enunciado como se calcula a partir de base
             int id= i+1;
-            usuarios[id] = new Usuario(id, main.base * id, buzonEntrada,main.procesadores, main.memoria, main.almacenamiento);
-            usuarios[id].start();
+            usuarios[i] = new Usuario(id, main.base * id, buzonEntrada,main.procesadores, main.memoria, main.almacenamiento);
+            usuarios[i].start();
         }
 
         for ( int i=0; i<main.ng; i++) {
@@ -102,7 +103,25 @@ public class Main {
             return;
         }
 
-        // pendiente: verificar que el buzon y la zona queden vacios y los recursos libres
+        // validación final
+    long esperadas = (long) main.base * main.nu * (main.nu + 1) / 2; // sumatoria de 1..nu multiplicada por base
+    System.out.println("Validación");
+    verificar("MVs creadas = solicitudes generadas (" + esperadas + ")", maquinasVirtuales.size() == esperadas);
+    verificar("buzón vacío y sin usuarios activos", buzonEntrada.terminado());
+    verificar("zona de espera vacía", zona.getPendientes() == 0);
+    verificar("procesadores libres", controladorProcesadores.todoLibre());
+    verificar("memoria libre", controladorMemoria.todoLibre());
+    verificar("almacenamiento libre", controladorAlmacenamiento.todoLibre());
+
+
+    }
+
+    private static void verificar(String descripcion, boolean paso) {
+        if (paso) {
+            System.out.println("Condicion cumplida: " + descripcion);
+        } else {
+            System.out.println("ERROR en: " + descripcion);
+        }
     }
 
 

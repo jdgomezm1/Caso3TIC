@@ -13,6 +13,9 @@ public class ZonaEspera {
     public synchronized long getGeneracion() {
         return generacion;
     }
+    public synchronized int getPendientes() {
+        return pendientes;
+    }
 
     // La MV la llama solo en su PRIMER fallo
     public synchronized void entrar() {
