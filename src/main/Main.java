@@ -3,7 +3,17 @@ package main;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import controladores.ControladorAlmacenamiento;
+import controladores.ControladorMemoria;
+import controladores.ControladorProcesadores;
 import monitores.BuzonEntrada;
+import monitores.ZonaEspera;
+import threads.Gestor;
+import threads.MaquinaVirtual;
 import threads.Usuario;
 
 public class Main {
@@ -38,21 +48,31 @@ public class Main {
         // capacidad del buzon = tam1
         BuzonEntrada buzonEntrada = new BuzonEntrada(main.tam1, main.nu);
 
-        // pendiente: crear la zona de espera (umbral = tam2)
-        // pendiente: crear los tres controladores
+        ZonaEspera zona = new ZonaEspera(main.tam2);
+
+        ControladorProcesadores controladorProcesadores = new ControladorProcesadores(main.procesadores);
+        ControladorMemoria controladorMemoria = new ControladorMemoria(main.memoria, main.pagina);
+        ControladorAlmacenamiento controladorAlmacenamiento = new ControladorAlmacenamiento(main.almacenamiento, main.bloque);
 
         // se guardan los usuarios para hacerles join al final
         Usuario[] usuarios = new Usuario[main.nu];
+        // lo mismo pa los gestores
+        Gestor[] gestores = new Gestor[main.ng];
+        // la lista compartida de MVs debe ser syncrhonized
+        List<MaquinaVirtual> maquinasVirtuales = Collections.synchronizedList(new ArrayList<>());
 
         for (int i = 0; i < main.nu; i++) {
             // el usuario i genera base*(i+1) solicitudes
             // ojo: confirmar con el enunciado como se calcula a partir de base
-            usuarios[i] = new Usuario(i, main.base * (i + 1), buzonEntrada,
-                    main.procesadores, main.memoria, main.almacenamiento);
-            usuarios[i].start();
+            int id= i+1;
+            usuarios[id] = new Usuario(id, main.base * id, buzonEntrada,main.procesadores, main.memoria, main.almacenamiento);
+            usuarios[id].start();
         }
 
-        // pendiente: crear e iniciar los ng gestores
+        for ( int i=0; i<main.ng; i++) {
+            gestores[i] = new Gestor(i+1, buzonEntrada, zona, controladorProcesadores, controladorAlmacenamiento, controladorMemoria, maquinasVirtuales);
+            gestores[i].start();
+        }
 
         // esperar a que terminen los usuarios
         // ojo: sin gestores, si hay mas de tam1 solicitudes el buzon se llena y esto no termina
@@ -65,7 +85,23 @@ public class Main {
             return;
         }
 
-        // pendiente: join a los gestores y luego a todas las mvs
+        try {
+            for (Gestor g : gestores) {
+                g.join();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+        try {
+            for (MaquinaVirtual mv : maquinasVirtuales) {
+                mv.join();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+
         // pendiente: verificar que el buzon y la zona queden vacios y los recursos libres
     }
 
