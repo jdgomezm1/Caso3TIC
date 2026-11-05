@@ -21,7 +21,7 @@ public class Gestor extends Thread {
     ControladorAlmacenamiento controladorAlmacenamiento;
     ControladorMemoria controladorMemoria;
     // lista compartida entre todos los gestores, se protege con synchronized al agregar
-    static List<MaquinaVirtual> maquinasVirtuales;
+    List<MaquinaVirtual> maquinasVirtuales;
 
 
     public Gestor(int idGestor, BuzonEntrada buzonEntrada, ZonaEspera zona, ControladorProcesadores controladorProcesadores, ControladorAlmacenamiento controladorAlmacenamiento, ControladorMemoria controladorMemoria, List<MaquinaVirtual> maquinasVirtuales) {
