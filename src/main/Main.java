@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import controladores.ControladorAlmacenamiento;
@@ -59,8 +58,8 @@ public class Main {
         Usuario[] usuarios = new Usuario[main.nu];
         // lo mismo pa los gestores
         Gestor[] gestores = new Gestor[main.ng];
-        // la lista compartida de MVs debe ser syncrhonized
-        List<MaquinaVirtual> maquinasVirtuales = Collections.synchronizedList(new ArrayList<>());
+        // lista compartida de mvs: el gestor agrega dentro de synchronized y main la lee despues de los join
+        List<MaquinaVirtual> maquinasVirtuales = new ArrayList<>();
 
         for (int i = 0; i < main.nu; i++) {
             // el usuario i genera base*(i+1) solicitudes
