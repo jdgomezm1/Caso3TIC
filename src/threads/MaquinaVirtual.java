@@ -33,7 +33,9 @@ public class MaquinaVirtual extends Thread {
                 zona.entrar();
                 enZona = true;
             }
+            System.out.println("MV " + id + " no consiguio sus recursos, espera en la zona");
             zona.dormir(gen);
+            System.out.println("MV " + id + " despierta y reintenta desde los procesadores");
             gen = zona.getGeneracion(); // actualizar gen para la siguiente iteración, si es que no se logra reservar
         }
 
@@ -41,9 +43,11 @@ public class MaquinaVirtual extends Thread {
             zona.salir();
         }
 
+        System.out.println("MV " + id + " consiguio sus recursos y se ejecuta: " + solicitud);
         ejecutar();
         liberarTodo();
         zona.notificarLiberacion();
+        System.out.println("MV " + id + " libero sus recursos y termino");
     }
 
     // se sigue el orden fijo y se retorna si se pudo reservar todo, false si falla alguno de los recursos

@@ -21,7 +21,9 @@ public class BuzonEntrada {
     public synchronized void ingresarSolicitud(Solicitud solicitud) throws InterruptedException {
 
         while (solicitudes.size() >= capacidad) {
+            System.out.println("Usuario " + solicitud.getIdUsuario() + " espera: buzon lleno");
             wait();
+            System.out.println("Usuario " + solicitud.getIdUsuario() + " despierta y revisa el buzon");
         }
 
         solicitudes.add(solicitud);
